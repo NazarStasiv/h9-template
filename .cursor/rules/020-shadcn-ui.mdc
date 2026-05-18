@@ -27,6 +27,8 @@ alwaysApply: false
 - Design tokens come from the Tailwind config + shadcn's CSS variables.
   Do not hard-code colors. Use `bg-background`, `text-foreground`,
   `border-input`, etc.
+- Detect token violations before opening a UI PR:
+  `grep -rn 'bg-white\|bg-black\|text-white\|bg-gray-[0-9]\|text-gray-[0-9]' app/ components/`
 - Spacing scale: `1` (= 0.25rem) through `12`. Avoid arbitrary values
   like `pt-[13px]` unless matching an external design.
 - `cn()` ordering: layout → spacing → typography → color → state.

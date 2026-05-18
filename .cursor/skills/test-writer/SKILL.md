@@ -47,6 +47,11 @@ Given a change (a file path, a feature description, or "test what's new"):
 7. **Tag E2E tests for demo-time.** Tests covering the demo happy path
    get tagged `@demo`, so [bug-hunter](../bug-hunter/SKILL.md) can
    prioritize them.
+8. **Verify agent-generated tests manually on demo path.** If you (the
+   agent) wrote both the code and the tests, the tests encode the same
+   assumptions as the code — they validate the agent, not correctness.
+   For tests covering the demo happy path, read both implementation and
+   tests by eye before committing.
 
 ## When invoked
 

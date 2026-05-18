@@ -13,6 +13,8 @@ exactly one artifact: a Markdown report ending in `OK_TO_MERGE: yes` or
 
 For a given change (a PR number, a branch name, or the current diff):
 
+0. Read tests first. Tests reveal intent and coverage. If a change has
+   no tests, that's already a finding for the "Missing tests" section.
 1. Identify the diff to review:
    - PR number → `gh pr diff <N>`
    - branch → `git diff main...<branch>`
@@ -44,6 +46,16 @@ For a given change (a PR number, a branch name, or the current diff):
 
 OK_TO_MERGE: <yes|no>
 ```
+
+Findings inside any section use a severity prefix so P1 can scan
+blockers vs noise in 5 seconds:
+
+| Prefix | Meaning |
+| --- | --- |
+| **Critical:** | Blocks merge — security, data loss, broken demo |
+| (no prefix) | Must fix before merge |
+| **Nit:** | Minor, optional |
+| **FYI:** | Informational, no action needed |
 
 ## Rules
 

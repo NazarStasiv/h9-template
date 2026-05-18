@@ -1,0 +1,80 @@
+---
+description: Next.js App Router conventions — security and performance defaults that prevent the most common P0 bugs. Auto-attaches once Phase 2 ships the app skeleton.
+globs: app/**/*.ts, app/**/*.tsx, components/**/*.ts, components/**/*.tsx, lib/**/*.ts
+alwaysApply: false
+---
+
+# Next.js App Router conventions
+
+Cheap-protection rules that prevent demo-breaking P0s. Production-grade
+patterns (DAL, structured logging, `optimizePackageImports`) are deferred
+to `TODO.md` — useful but over-engineering for a 4-hour event.
+
+## Secrets — never `NEXT_PUBLIC_`
+
+The `NEXT_PUBLIC_` prefix inlines the value into client-side JavaScript,
+visible in any browser DevTools.
+
+```bash
+# ✅ server-only
+JWT_SECRET=...
+
+# ❌ leaks into the client bundle
+NEXT_PUBLIC_JWT_SECRET=...
+```
+
+## Server Actions — re-verify auth inside the function
+
+Middleware is for routing, not security (CVE-2025-29927, CVSS 9.1).
+Every mutating Server Action verifies the session in its own body.
+
+```ts
+'use server'
+export async function updateResource(data: unknown) {
+  const parsed = Schema.safeParse(data);
+  if (!parsed.success) return { error: 'Invalid input' };
+  const session = await verifySession();
+  if (!session) return { error: 'Unauthorized' };
+  // … now safe to mutate
+}
+```
+
+## Parallel data fetching
+
+Independent fetches use `Promise.all()`. Sequential `await` is 2–10×
+slower for no reason.
+
+```ts
+// ✅ one round trip
+const [user, posts, config] = await Promise.all([
+  getUser(), getPosts(), getConfig(),
+]);
+
+// ❌ three round trips
+const user = await getUser();
+const posts = await getPosts();
+```
+
+In RSC: split fetches into sibling components and wrap async children
+in `<Suspense>` so the layout streams.
+
+## No module-level mutable state in RSC
+
+RSC renders concurrently. Module-level `let` variables race across
+requests and can leak one user's data into another's response.
+
+```ts
+// ✅ per-request via React.cache()
+import { cache } from 'react';
+export const getUser = cache(async () => auth());
+
+// ❌ Request B overwrites Request A
+let currentUser: User | null = null;
+```
+
+## Server components by default
+
+Default to server components. Add `'use client'` only when the file
+needs `useState`/`useEffect`/`useReducer`, event handlers, or
+`window`/`document`. Push `'use client'` to the leaf and pass
+server-fetched data down as props.

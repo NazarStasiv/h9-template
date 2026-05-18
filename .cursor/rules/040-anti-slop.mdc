@@ -1,0 +1,44 @@
+---
+description: AI-code anti-slop guardrails — banned filename patterns, console.log discipline, and grep-before-create for shared utilities. Auto-attaches to all TS and TSX files.
+globs: **/*.ts, **/*.tsx
+alwaysApply: false
+---
+
+# Anti-slop conventions
+
+Encodes the most common AI-generated code-quality failures.
+
+## Banned filename suffixes
+
+Do not commit files matching `*_v2.*`, `*_new.*`, `*_old.*`,
+`*_backup.*`, `*_fixed.*`, `*_temp.*`, `*_wip.*`. These are AI
+debugging residue. If a file is canonical, give it a proper name.
+
+## No `console.log` in production paths
+
+Use a structured logger when one exists in the project. Otherwise
+leave a `// TODO(P1): wire up logger` and route to `console.error`
+for the interim. Do not commit ad-hoc `console.log` calls in `lib/`,
+`app/`, or any production-reachable path.
+
+## Grep before creating shared utilities
+
+Before implementing a new utility (date formatter, error handler,
+HTTP client, retry wrapper), confirm one does not already exist:
+
+```bash
+grep -rn "formatDate\|handleError\|withRetry" src/ lib/ app/ | head -20
+```
+
+If a canonical version exists, import it. Do not create a parallel
+implementation.
+
+## `!` non-null assertion requires a comment
+
+`!` bypasses null-checking and hides runtime bugs. Allowed only with
+an adjacent one-line comment explaining why it is safe:
+
+```ts
+// safe: validated by Zod schema above
+const id = parsed.data.id!;
+```
