@@ -1,7 +1,7 @@
 # PLAYBOOK.md — hackathon day timeline
 
-This is the minute-level script for the three engineers on May 22. Print it,
-keep it on a second monitor, or pin a tmux pane to it. Times are wall-clock
+This is the minute-level script for the three engineers. Print it, keep
+it on a second monitor, or pin a chat panel to it. Times are wall-clock
 elapsed from the start of the building window.
 
 The plan is built around five phases. Each phase has explicit deliverables
@@ -15,22 +15,25 @@ gets judged.
 
 Done by 30 minutes before kickoff:
 
-- [ ] Cursor, Claude Code, Pi installed and logged in on all three laptops.
+- [ ] **Cursor** installed and logged in on all three laptops (P1 and P2
+      will use it as primary; P3 keeps it installed as a fallback).
+- [ ] **Pi** installed and logged in on P3's laptop:
+      `npm install -g @earendil-works/pi-coding-agent` (or per
+      [https://pi.dev/docs/latest](https://pi.dev/docs/latest)).
 - [ ] `gh auth status` returns `Logged in to github.com`.
-- [ ] `claude --version` and `pi --version` both print a version.
-- [ ] `tmux -V` prints a version (we use tmux for parallel sessions).
+- [ ] `git --version` prints a version.
 - [ ] `npx playwright install chromium` has been run at least once
-      (browsers cached locally).
+      (browsers cached locally) — needed for demo recording.
 - [ ] Each engineer has cloned a fresh copy of this template into a new
       empty directory; the team agrees in advance which laptop is the
-      "main" laptop that owns `main` branch pushes.
+      "main" laptop that owns `main` branch pushes (default: P1).
 - [ ] The team's GitHub repo for the hackathon exists (create empty repo,
       add it as `origin` on P1's laptop).
-- [ ] Anthropic API key (or whatever tokens the organizers issue) is set
-      in each engineer's shell, exported as `ANTHROPIC_API_KEY` or the
-      equivalent the harness expects.
-- [ ] Pi pack is **not** pre-installed (we install it on demand only as a
-      rate-limit escape hatch).
+- [ ] Provider tokens (Anthropic / OpenAI / whatever the organizers issue)
+      are set in each engineer's shell. P3 confirms Pi can route to the
+      provider via `/model` before kickoff.
+- [ ] MCP servers in [.cursor/mcp.json](.cursor/mcp.json) (Playwright and
+      Context7) approved on first use by P1 and P2.
 
 ---
 
@@ -52,7 +55,7 @@ of challenge this is. The rest of Phase 1 branches on this:
   [CHALLENGE.md](CHALLENGE.md) instead of MISSION.md. Then for each
   given repo, run `/onboard <path>` (in parallel via worktrees if you
   have 3+ repos). For each problem sourced from a GitHub issue,
-  invoke the [issue-triage](.claude/skills/issue-triage/SKILL.md) skill
+  invoke the [issue-triage skill](.cursor/skills/issue-triage/SKILL.md)
   with the issue number. THEN run `/plan` against the consolidated
   picture in CHALLENGE.md.
 - **Hybrid** (one repo to extend + side tasks): both files apply.
@@ -62,32 +65,35 @@ of challenge this is. The rest of Phase 1 branches on this:
 The Phase 1 stop condition (below) accepts whichever document(s) the
 fork required.
 
-### P1 — Planner / Architect / Demo
+### P1 — Planner / Architect / Demo (Cursor)
 
 1. Read the challenge brief end to end without taking notes.
-2. Start Claude Code at the repo root.
-3. Run `/plan "<paste the challenge brief verbatim>"`. The `@planner`
-   subagent produces a draft `PLAN.md`.
+2. Open Cursor at the repo root. Use Agent mode.
+3. Run `/plan "<paste the challenge brief verbatim>"`. The
+   [planner skill](.cursor/skills/planner/SKILL.md) produces a draft
+   `PLAN.md`.
 4. Manually rewrite the four bullets in [AGENTS.md §1](AGENTS.md). Commit
    `MISSION.md`, `AGENTS.md` update, and the draft `PLAN.md` on `main`.
    This is the only direct push to `main` allowed all day.
 5. Push to GitHub. Announce on team chat: "MISSION up, start your spikes."
 
-### P2 — Implementer
+### P2 — Implementer (Cursor)
 
 1. Read the brief.
 2. Wait for P1's announcement (do not start coding).
 3. Once `MISSION.md` is up, pull, read `PLAN.md`, and pick the highest-
    priority item in your column.
 4. Run `/spike <name> "<one-line objective>"` to open a worktree for the
-   first feature.
+   first feature. Open the worktree in a new Cursor window:
+   `cursor ../hack9-<name>`.
 
-### P3 — Reviewer / Tester
+### P3 — Reviewer / Tester (Pi)
 
 1. Read the brief.
 2. While waiting on P1, run `npx playwright install chromium` if not done.
-3. Open a tmux session named `qa` with two panes: one for `@test-writer`,
-   one for `@bug-hunter`.
+3. Launch Pi at the repo root. Confirm the Pi pack is installed:
+   `bash scripts/pi-install.sh`. Verify `/review`, `/test`, and
+   `/bug-hunt` are available.
 4. When `PLAN.md` lands, read it and identify the riskiest module — that's
    where your first tests go.
 
@@ -107,37 +113,37 @@ during Phase 3.
 ### Pattern of the day: Writer/Reviewer with fresh context
 
 This phase runs an explicit **Writer/Reviewer split** — the highest-
-leverage quality pattern in Anthropic's best practices doc and one of
-the things we'll articulate to the judges.
+leverage quality pattern in modern AI-coding best practices. We make it
+explicit in our setup:
 
-- **P2 is the Writer.** P2 holds the implementation context, runs
-  `@implementer`, opens PRs.
-- **P3 is the Reviewer with fresh context.** P3 reads each PR in a
-  separate session (no prior implementation context), runs
-  `@reviewer`, and emits `OK_TO_MERGE: yes/no`. A second pair of
+- **P2 is the Writer** (Cursor). P2 holds the implementation context, runs
+  the [implementer skill](.cursor/skills/implementer/SKILL.md), opens PRs.
+- **P3 is the Reviewer with fresh context** (Pi). P3 reads each PR in a
+  separate Pi session (no prior implementation context), runs
+  `/review`, and emits `OK_TO_MERGE: yes/no`. A second pair of
   eyes that wasn't biased by the act of writing the code.
-- **P1 merges.** Only P1 merges, and only after P3's `OK_TO_MERGE:
+- **P1 merges** (Cursor). Only P1 merges, and only after P3's `OK_TO_MERGE:
   yes` is the most recent reviewer comment. P1 may run
   `/pr-checklist <num>` as a cheap deterministic gate before merging.
 
 This is the same pattern as a small-team code-review culture, but
-codified into the harness — explicit subagents, explicit slash
+codified into the harnesses — explicit skill personas, explicit slash
 commands, explicit verdict format. Easy to pitch.
 
-### P1 — Planner / Architect / Demo
+### P1 — Planner / Architect / Demo (Cursor)
 
 - Watch the PR queue. Review and merge anything from P2 or P3 that has an
-  `@reviewer` `OK_TO_MERGE: yes` on it.
+  `OK_TO_MERGE: yes` on it.
 - Every 30 minutes, update `PLAN.md` with current status: what's merged,
   what's in flight, what's deferred to `TODO.md`.
 - If P2 or P3 are blocked, spawn a `/spike` of your own to unblock them.
 - At 2:00 mark, do a "soft demo rehearsal" inside `main` for yourself.
   Identify the three things most likely to break and warn the team.
 
-### P2 — Implementer
+### P2 — Implementer (Cursor)
 
-- Use `/ship <feature>` for clearly-scoped features. This runs
-  `@planner → @implementer → @test-writer → @reviewer → gh pr create`
+- Use `/ship <feature>` for clearly-scoped features. This guides Cursor
+  through planner → implementer → test-writer → reviewer → `gh pr create`
   sequentially in your session.
 - For exploratory features, use `/spike` first, then promote the spike
   branch to a `feat/` PR once viable.
@@ -145,13 +151,13 @@ commands, explicit verdict format. Easy to pitch.
   If a review is taking longer than 10 minutes, ping P1 and switch to
   the next task in a worktree.
 
-### P3 — Reviewer / Tester
+### P3 — Reviewer / Tester (Pi)
 
-- React to every PR within 5 minutes: run `/review`, post the
-  `@reviewer` report as a comment, mark `OK_TO_MERGE: yes` or `no`.
-- Between reviews, run `@test-writer` on the highest-risk module
-  identified in Phase 1.
-- At 2:30, run `@bug-hunter` against the staged-but-unmerged code.
+- React to every PR within 5 minutes: run `/review <PR#>` in Pi, post the
+  reviewer report as a PR comment, mark `OK_TO_MERGE: yes` or `no`.
+- Between reviews, run `/test` on the highest-risk module identified in
+  Phase 1.
+- At 2:30, run `/bug-hunt` against the staged-but-unmerged code.
   Surface anything that would embarrass the team in the demo.
 
 **Stop condition at 3:00:** the demo win condition runs end-to-end on
@@ -164,25 +170,23 @@ update `MISSION.md` accordingly.
 
 **Goal:** make the happy path look intentional. No new features.
 
-### P1 — Planner / Architect / Demo
+### P1 — Planner / Architect / Demo (Cursor)
 
-- Open Cursor (this is the first time today). Apply the
-  `100-demo-polish` rule from
+- Apply the `100-demo-polish` rule from
   [.cursor/rules/100-demo-polish.mdc](.cursor/rules/100-demo-polish.mdc):
   audit happy-path interactions for missing loading/empty/error states.
-- Run `/demo-record` from Cursor to capture the first take of the
-  Playwright video.
+- Run `/demo-record` to capture the first take of the Playwright video.
 
-### P2 — Implementer
+### P2 — Implementer (Cursor)
 
 - Address only blocking bugs P3 surfaces in this phase. Anything
   cosmetic goes to `TODO.md`, not into a PR.
 - If asked to leave the code alone, do so. Stand by for demo-recording
   assistance.
 
-### P3 — Reviewer / Tester
+### P3 — Reviewer / Tester (Pi)
 
-- Run a final pass with `@bug-hunter` on the full `main` branch.
+- Run a final pass with `/bug-hunt` on the full `main` branch.
 - Verify the happy path on a clean clone (use `git worktree add ../verify`
   and run from there) to make sure the demo isn't relying on local-only
   state.
@@ -198,20 +202,21 @@ as a fallback (announce in chat).
 **Goal:** ship the demo artifact. Slides, video, README — in that order
 of importance.
 
-### P1 — Planner / Architect / Demo
+### P1 — Planner / Architect / Demo (Cursor)
 
-- Run `/demo` to invoke `@demo-builder`. It writes a `DEMO.md` with the
-  narration, embeds the recording link, and produces a 3-slide pitch
-  outline in `DEMO_SLIDES.md`.
-- Rehearse the narration aloud once. Time it. Aim for &lt; 3 minutes.
+- Run `/demo` to follow the
+  [demo-builder skill](.cursor/skills/demo-builder/SKILL.md). It writes
+  a `DEMO.md` with the narration, embeds the recording link, and
+  produces a 3-slide pitch outline in `DEMO_SLIDES.md`.
+- Rehearse the narration aloud once. Time it. Aim for < 3 minutes.
 
-### P2 — Implementer
+### P2 — Implementer (Cursor)
 
 - Update repo `README.md` with: one-paragraph description, screenshot,
   how to run locally, what's in the demo video.
 - Stand by to fix any tiny copy issue P1 surfaces during rehearsal.
 
-### P3 — Reviewer / Tester
+### P3 — Reviewer / Tester (Pi)
 
 - Open the demo video in a clean browser. Verify audio and resolution.
 - Verify `README.md` instructions work on the clean worktree.
@@ -237,30 +242,24 @@ video are all committed and pushed to `main`.
 
 ## Recovery patterns
 
-### "Claude Code rate-limits us mid-session"
+### "Cursor model is rate-limited or returning errors"
 
-1. Affected engineer runs `bash scripts/pi-rescue.sh` from repo root.
-2. Pi launches in the same directory; the fallback pack is loaded.
-3. Announce in chat: "P2 on Pi for rate-limit." Continue work using the
-   prompts in [tools/pi-fallback/prompts/](tools/pi-fallback/prompts/).
-4. Switch back to Claude Code when the rate limit clears (typically &lt;
-   15 minutes for Anthropic). The fallback pack stays installed; it does
-   no harm.
+1. Affected engineer (P1 or P2) switches model in Cursor settings
+   (Cursor supports multiple providers).
+2. If no model works in Cursor, ask P3 to handle the current task in Pi
+   using the corresponding `/review`, `/test`, or `/bug-hunt` prompt.
+3. Announce in team chat: "P2 handing off to P3 via Pi for 15 minutes."
+4. Switch back to Cursor when the rate limit clears (typically <15 min).
 
-### "Hooks are blocking edits"
+### "Pi model is unavailable"
 
-1. Add `--bare` to the `claude` invocation. This skips auto-loaded hooks,
-   skills, plugins, MCP, and CLAUDE.md.
-2. Investigate the hook in [.claude/hooks/](.claude/hooks/) after the
-   event. Do not fight the hook during the event.
-
-### "Anthropic tokens turn out to not be Anthropic tokens"
-
-1. P1 keeps Claude Code; P2 and P3 each open Cursor as their primary.
-2. The `.cursor/rules/` rules still apply; the team loses subagent
-   sharing but the slash commands in `.cursor/commands/` still work.
-3. Total switch time: ~15 minutes. Announce the switch in chat and update
-   `MATRIX.md` to reflect it (for the judges).
+1. P3 switches provider via `/model` in Pi (15+ providers supported).
+2. If no provider works, P3 switches to Cursor and runs the
+   [reviewer](.cursor/skills/reviewer/SKILL.md),
+   [test-writer](.cursor/skills/test-writer/SKILL.md), and
+   [bug-hunter](.cursor/skills/bug-hunter/SKILL.md) skills there.
+3. The skills mirror the Pi prompts, so behavior should be identical.
+4. Announce in chat: "P3 on Cursor temporarily."
 
 ### "GitHub is down"
 
@@ -280,7 +279,7 @@ video are all committed and pushed to `main`.
 ## Closing reminders
 
 - The hackathon judges look at the **repo** at least as much as the
-  **demo**. `AGENTS.md`, `MATRIX.md`, `.claude/agents/*`, and PR bodies
+  **demo**. `AGENTS.md`, `MATRIX.md`, `.cursor/skills/*`, and PR bodies
   are all judge-visible artifacts. Treat them like product surface.
 - The 4-hour cap is sacred. We do not chase perfection past 3:00.
 - We win by orchestrating AI, not by writing more code than the next

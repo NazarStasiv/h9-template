@@ -13,13 +13,13 @@ Confirm before starting:
 1. `MISSION.md` exists and the happy path works end-to-end on `main`.
 2. `pnpm dev` is running locally on the demo machine.
 3. The Playwright MCP server is reachable (it's declared in
-   [.mcp.json](mdc:.mcp.json) at the repo root; Cursor inherits it).
+   [.cursor/mcp.json](mdc:.cursor/mcp.json) at the repo root).
 4. The team's chat has been notified — no commits land while recording.
 
 ## Steps
 
-1. Read [DEMO.md](mdc:DEMO.md) if it exists. If not, run
-   [@demo-builder](mdc:.claude/agents/demo-builder.md) in Claude Code
+1. Read [DEMO.md](mdc:DEMO.md) if it exists. If not, follow the
+   [demo-builder skill](mdc:.cursor/skills/demo-builder/SKILL.md)
    first to produce a narration script.
 2. Walk through the narration with the browser MCP, taking
    screenshots at each `**[m:ss]**` marker in `DEMO.md`. Save to
@@ -48,7 +48,7 @@ Confirm before starting:
 
 If Playwright MCP is unavailable or recording fails twice:
 
-- Fall back to QuickTime screen recording. Announce in chat.
+- Fall back to screen recording (QuickTime, OBS, or Win+G). Announce in chat.
 - Record at 1080p, 30fps, with system audio.
 - Save as `demo.mov`, then convert to `demo.mp4` via
   `ffmpeg -i demo.mov -c:v libx264 -crf 22 demo.mp4`.

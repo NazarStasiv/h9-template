@@ -68,8 +68,9 @@ For each problem, "done" means **all** of:
 - [ ] The fix makes that test pass
 - [ ] No previously-passing test now fails
 - [ ] PR is open with: one-sentence "what + why", the verification
-      trace from [implementer.md](.claude/agents/implementer.md) Rule
-      G1, and `OK_TO_MERGE: yes` from `@reviewer`
+      trace from the [implementer skill](.cursor/skills/implementer/SKILL.md),
+      and `OK_TO_MERGE: yes` from the
+      [reviewer skill](.cursor/skills/reviewer/SKILL.md)
 - [ ] PR is merged into the target repo's `main` (or whatever the
       challenge's submission format requires)
 

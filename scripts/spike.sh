@@ -8,9 +8,9 @@
 #   bash scripts/spike.sh csv-upload "validate the parser handles malformed input"
 #   bash scripts/spike.sh auth-spike
 #
-# Creates a sibling worktree at ../hack9-<name> on branch spike/<name>,
-# writes a SPIKE.md file in the worktree, and prints the command to open
-# a new Claude Code session there in a tmux pane.
+# Creates a sibling worktree at ../hack9-<name> on branch spike/<name>
+# and writes a SPIKE.md file in the worktree. The user opens the new
+# worktree in a new Cursor window.
 
 set -euo pipefail
 
@@ -38,7 +38,6 @@ fi
 
 # --- preconditions -------------------------------------------------------
 
-# Must run from a git repo root.
 if ! git_root="$(git rev-parse --show-toplevel 2>/dev/null)"; then
   echo >&2 "error: not inside a git repository"
   exit 66
@@ -109,17 +108,13 @@ Spike ready.
   Branch:    $branch
   SPIKE.md:  $worktree_path/SPIKE.md
 
-Open in a new tmux pane (split horizontally, runs claude in the worktree):
+Open in a new Cursor window:
 
-    tmux split-window -h -c "$worktree_path" "claude"
-
-Or open in a new tmux window:
-
-    tmux new-window -c "$worktree_path" "claude"
+    cursor "$worktree_path"
 
 Or attach manually:
 
-    cd "$worktree_path" && claude
+    cd "$worktree_path"
 
 When the spike is done, either promote it:
 

@@ -61,8 +61,10 @@ Audit each of these on the happy path:
   branch, commit as `polish(<scope>): <change>`, open a small PR.
 - Non-trivial fix: file in `TODO.md` and move on. Phase 4 is not the
   time to chase rabbit holes.
-- Bug that breaks the demo path: STOP. Escalate to `@bug-hunter` in
-  Claude Code immediately. The demo path must work end-to-end.
+- Bug that breaks the demo path: STOP. Escalate to the
+  [bug-hunter skill](mdc:.cursor/skills/bug-hunter/SKILL.md) (or P3
+  on Pi via `/bug-hunt`) immediately. The demo path must work
+  end-to-end.
 
 ## What to capture
 
@@ -79,5 +81,5 @@ While auditing, capture screenshots of the polished happy path:
 - Do not add new features. The feature freeze is in effect.
 - Do not change copy unless it's clearly wrong (typos, broken
   grammar). Copy changes can derail rehearsed narration.
-- Do not edit `.claude/`, `.cursor/`, `AGENTS.md`, `PLAYBOOK.md`, or
+- Do not edit `.cursor/`, `tools/pi/`, `AGENTS.md`, `PLAYBOOK.md`, or
   `MATRIX.md` during demo polish. The configuration is frozen too.

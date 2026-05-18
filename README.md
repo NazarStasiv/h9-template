@@ -1,38 +1,42 @@
 # h9 template
 
-Configuration scaffold for a 3-engineer hackathon team running primarily on
-**Claude Code**, with Cursor as a secondary surface for demo polish and Pi
-as a documented rate-limit fallback.
+Configuration scaffold for a 3-engineer hackathon team running on
+**Cursor** (two engineers) and **Pi** (one engineer). Cursor handles
+the planning and implementation flow with file-based skills; Pi
+handles QA (review, test, bug-hunt) with cross-provider model routing
+as a built-in hedge.
 
-This is **Phase 1**: configuration only. There is no application skeleton
-yet — that lands in Phase 2 after the team's prep dry-run finalizes the
-stack choices.
+This is **Phase 1**: configuration only. There is no application
+skeleton yet — that lands in Phase 2 after the team's prep dry-run
+finalizes the stack choices.
 
 ## 60-second bootstrap
 
 ```bash
-# 1. Verify prerequisites (all three engineers' laptops)
-claude --version           # Anthropic Claude Code CLI
-gh auth status             # GitHub CLI logged in
-tmux -V                    # tmux for parallel sessions
-node --version             # Node 20+ for MCP servers via npx
+# 1. Verify prerequisites
+cursor --version          # Cursor IDE (P1 and P2)
+pi --version              # Pi CLI agent (P3 only)
+gh auth status            # GitHub CLI logged in
+git --version             # any reasonably recent git
+node --version            # Node 20+ for MCP servers via npx
 
 # 2. Optional: pre-pull MCP servers so first invocation is instant
 npx -y @playwright/mcp@latest --version
 
-# 3. Start a Claude Code session at the repo root
-claude
+# 3. Open Cursor at the repo root (P1 and P2)
+cursor .
 ```
 
-That's the entire setup. Subagents, slash commands, and hooks are
-auto-loaded from [.claude/](.claude/) on first start. MCP servers
-declared in [.mcp.json](.mcp.json) prompt for one-time approval the
+Cursor's skills, slash commands, hooks, and MCP servers auto-load from
+the `.cursor/` directory on first open. MCP servers declared in
+[.cursor/mcp.json](.cursor/mcp.json) prompt for one-time approval the
 first time they're used.
 
-If Anthropic rate-limits the team mid-event, escape to Pi:
+For the Pi engineer (P3):
 
 ```bash
-bash scripts/pi-rescue.sh
+# Install the Pi pack and launch Pi at the repo root
+bash scripts/pi-install.sh
 ```
 
 ## Read these in order
@@ -40,7 +44,7 @@ bash scripts/pi-rescue.sh
 For the team — before hackathon day:
 
 1. [AGENTS.md](AGENTS.md) — the operating manual all three engineers
-   and all three AI harnesses read.
+   and both AI harnesses read.
 2. [PLAYBOOK.md](PLAYBOOK.md) — minute-by-minute day-of script.
 3. [MATRIX.md](MATRIX.md) — why this configuration exists (also written
    for the hackathon judges).
@@ -48,42 +52,39 @@ For the team — before hackathon day:
 For an AI judge inspecting the repo:
 
 1. [AGENTS.md](AGENTS.md) and [MATRIX.md](MATRIX.md) explain intent.
-2. [.claude/agents/](.claude/agents/) and
-   [.claude/commands/](.claude/commands/) show the orchestration
+2. [.cursor/skills/](.cursor/skills/) and
+   [.cursor/commands/](.cursor/commands/) show the Cursor orchestration
    surface.
-3. [.claude/settings.json](.claude/settings.json) shows the security
-   posture (explicit permissions, deny rules for secrets).
+3. [tools/pi/](tools/pi/) shows the Pi prompts and skill that mirror
+   the read-only Cursor flows.
 
 ## Repo map
 
 ```text
 .
-├── AGENTS.md                       # operating manual (SSoT for all harnesses)
-├── CLAUDE.md                       # Claude Code-specific overrides; @-imports AGENTS.md
+├── AGENTS.md                       # operating manual (SSoT for all surfaces)
 ├── PLAYBOOK.md                     # day-of minute timeline x 3 roles
 ├── MATRIX.md                       # tooling rationale for judges
-├── .mcp.json                       # Claude Code project MCP servers
+├── CHALLENGE.md                    # template for given-repo challenges
 ├── .gitignore
 │
-├── .claude/                        # PRIMARY: Claude Code config (~80% of effort)
-│   ├── settings.json               # permissions, hooks, model, attribution
-│   ├── agents/                     # 9 role-owned subagents (3 per engineer)
-│   ├── commands/                   # 8 slash commands (plan, spike, ship, ...)
-│   └── hooks/                      # post-edit-typecheck.sh (advisory)
-│
-├── .cursor/                        # SECONDARY: demo polish, visual review
+├── .cursor/                        # PRIMARY: Cursor config (P1, P2)
+│   ├── mcp.json                    # MCP servers (Playwright, Context7)
+│   ├── hooks.json                  # session-start + post-edit hooks
+│   ├── hooks/                      # hook scripts
 │   ├── rules/                      # 4 .mdc rules (core, TS, shadcn, demo)
-│   └── commands/                   # 2 commands (demo-record, visual-pr-review)
+│   ├── commands/                   # 10 slash commands (plan, spike, ship, …)
+│   └── skills/                     # 19 skills — 9 personas + 10 procedural
 │
-├── tools/pi-fallback/              # FALLBACK: rate-limit escape hatch
+├── tools/pi/                       # PRIMARY: Pi pack for P3 (QA)
 │   ├── package.json                # Pi pack manifest
 │   ├── APPEND_SYSTEM.md            # adds to Pi system prompt
 │   ├── prompts/                    # /review, /test, /bug-hunt for Pi
 │   └── skills/playwright-e2e/      # Playwright E2E skill
 │
 └── scripts/
-    ├── spike.sh                    # git worktree + new claude session in tmux
-    └── pi-rescue.sh                # install Pi pack and switch to Pi
+    ├── spike.sh                    # git worktree + new Cursor window
+    └── pi-install.sh               # install the Pi pack and launch Pi
 ```
 
 ## Phase 2 — what's next
@@ -94,7 +95,7 @@ Phase 2 adds:
 - Next.js 15 App Router skeleton with shadcn/ui, Tailwind, Drizzle+libSQL.
 - `package.json` with `typecheck`, `lint`, `test`, `dev` scripts.
 - `.github/workflows/ci.yml` for type/lint/test on push.
-- A `DEMO.md` template that `@demo-builder` fills in on event day.
+- A `DEMO.md` template that the demo-builder skill fills in on event day.
 
 ## License
 
